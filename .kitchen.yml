@@ -1,0 +1,60 @@
+---
+driver:
+  name: vagrant
+
+driver_config:
+  aws_access_key_id: <%= ENV['AWS_ACCESS_KEY_ID'] %>
+  aws_secret_access_key: <%= ENV['AWS_SECRET_ACCESS_KEY'] %>
+  aws_ssh_key_id: <%= ENV['AWS_KEYPAIR_NAME'] %>
+
+provisioner:
+  name: chef_solo
+  require_chef_omnibus: latest
+
+platforms:
+- name: ubuntu-12.04
+  driver_plugin: ec2
+  driver_config:
+    flavor_id: t2.micro
+    image_id: ami-3ccc7a54
+    username: ubuntu
+    ssh_key: <%= ENV['EC2_SSH_KEY_PATH'] %>
+
+suites:
+- name: default
+  run_list:
+  - recipe[apt]
+  - recipe[xml]
+  - recipe[aws]
+  - recipe[java]
+  - recipe[elasticsearch::default]
+  - recipe[elasticsearch::aws]
+  - recipe[elasticsearch::ebs]
+  - recipe[elasticsearch::data]
+  - recipe[elasticsearch::plugins]
+  attributes:
+    elasticsearch:
+      cloud:
+        aws:
+          access_key: <%= ENV['AWS_ACCESS_KEY_ID'] %>
+          secret_key: <%= ENV['AWS_SECRET_ACCESS_KEY'] %>
+          # proxy_host: 127.0.0.1
+          # proxy_port: 3128
+      data:
+        devices:
+          /dev/xvdf:
+            file_system: ext3
+            mount_options: 'rw,user'
+            mount_path: /usr/local/var/elasticsearch/disk1
+            fs_check_command: dumpe2fs
+            format_command: 'mkfs.ext3'
+            ebs:
+              device: /dev/sdf
+              size: 1
+              delete_on_termination: true
+              type: standard
+      plugin:
+        # proxy_host: 127.0.0.1
+        # proxy_port: 3128
+      plugins:
+        elasticsearch/elasticsearch-cloud-aws: {}
