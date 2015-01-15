@@ -11,3 +11,7 @@ tmp/*
 !tmp/data_bags/.gitignore
 !tmp/data_bags/elasticsearch/settings.json
 !tmp/data_bags/elasticsearch/plugins.json
+.kitchen/
+.kitchen.local.yml
+.envrc
+.ruby-version
